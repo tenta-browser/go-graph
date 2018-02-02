@@ -1,4 +1,4 @@
-Go Bitstream Ops
+Go Graph
 ================
 
 [![GoDoc](https://godoc.org/github.com/tenta-browser/go-graph?status.svg)](https://godoc.org/github.com/tenta-browser/go-graph)
