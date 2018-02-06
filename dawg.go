@@ -3,7 +3,6 @@ package graph
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 	"time"
 
 	"github.com/golang/snappy"
@@ -382,10 +381,9 @@ func (d *Dawg) ExactLookup(word string) bool {
 	return node.isFinal()
 }
 
-// ExactLookupWithPayloadAndSeparator -- just like exact lookup, but returns means to an additional (application specific) check with the last matching node's payload
+// ExactLookupWithPayload -- just like exact lookup, but returns means to an additional (application specific) check with the last matching node's payload
 // Walks the graph until it can't (or finds a match) and then returns the remainder of the input and the last node's payload.
-// Specially crafted for uBlock, handles `^` special character as filter separator (TODO: handle separator at construction time)
-func (d *Dawg) ExactLookupWithPayloadAndSeparator(word string) *SearchResult {
+func (d *Dawg) ExactLookupWithPayload(word string) *SearchResult {
 	node := d.root
 	// log("Searching for word [%s]\n", word)
 	for i, symbol := range word {
@@ -397,12 +395,6 @@ func (d *Dawg) ExactLookupWithPayloadAndSeparator(word string) *SearchResult {
 		}
 
 		if _, contains := node.getEdges()[string(symbol)]; contains == false {
-			next, ok := node.getEdges()["^"]
-			if strings.Contains(":/?=&", string(symbol)) && ok {
-				node = next
-				continue
-			}
-
 			// log("not found.\n")
 			return &SearchResult{MatchNotFound, "", nil}
 		}
