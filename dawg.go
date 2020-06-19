@@ -293,7 +293,7 @@ func (d *Dawg) getSerialNodes() []dawgNode {
 
 // Insert - Inserts a word, with an optional payload
 func (d *Dawg) Insert(word string, optPayload NodePayload) bool {
-	if word < d.previousWord {
+	if word < d.previousWord || word == "" {
 		return false
 	}
 	commonPrefix := 0
