@@ -3,6 +3,7 @@ package graph
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/golang/snappy"
@@ -385,31 +386,42 @@ func (d *Dawg) ExactLookup(word string) bool {
 // Walks the graph until it can't (or finds a match) and then returns the remainder of the input and the last node's payload.
 func (d *Dawg) ExactLookupWithPayload(word string) *SearchResult {
 	node := d.root
-	// log("Searching for word [%s]\n", word)
+	ret := &SearchResult{MatchNotFound, "", nil}
+	log("Searching for word [%s]\n", word)
 	for i, symbol := range word {
 		/// if next symbol does not match
-		// log("Trying symbol [%s] ... ", string(symbol))
+		log("Trying symbol [%s] ... ", string(symbol))
 		if node.isFinal() {
-			// log("node is final, so it depends on payload.\n")
-			return &SearchResult{MatchUncertain, word[i:], node.getPayload()}
+			log("node is final [%d], so it depends on payload. [%v]\n", node.getEdges(), node.getPayload().String())
+
+			// thankfully, useful information is abstracted away here
+			if strings.Contains(node.getPayload().String(), "Exception") {
+				log("returning exception aka match not found\n")
+				return &SearchResult{MatchUncertain, word[i:], node.getPayload()}
+			} else {
+				log("saving match uncertain for later\n")
+				ret =  &SearchResult{MatchUncertain, word[i:], node.getPayload()}
+			}
+
 		}
 
 		if _, contains := node.getEdges()[string(symbol)]; contains == false {
-			// log("not found.\n")
-			return &SearchResult{MatchNotFound, "", nil}
+			log("not found.\n")
+			return ret//&SearchResult{MatchNotFound, "", nil}
 		}
 		node = node.getEdges()[string(symbol)]
-		// log("found. Possible avenues are [")
-		// for sym, _ := range node.getEdges() {
-		// log("%s ", string(sym))
-		// }
-		// log("]\n")
+		log("found. Possible avenues are [")
+		for sym, _ := range node.getEdges() {
+		log("%s ", string(sym))
+		}
+		log("]\n")
 	}
-	// log("Reached the end. last node isFinal is [%v]\n", node.isFinal())
+	log("Reached the end. last node isFinal is [%v]\n", node.isFinal())
 	if node.isFinal() {
+
 		return &SearchResult{MatchFound, "", node.getPayload()}
 	} else {
-		return &SearchResult{MatchNotFound, "", nil}
+		return ret//&SearchResult{MatchNotFound, "", nil}
 	}
 }
 
